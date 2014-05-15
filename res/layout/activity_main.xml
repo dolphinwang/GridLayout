@@ -13,8 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         grid:columnCount="3"
-        grid:itemSpaceHorizontal="10dp"
-        grid:itemSpaceVertical="10dp"
+        grid:itemSpaceHorizontal="1dp"
+        grid:itemSpaceVertical="1dp"
         grid:rowCount="3" >
 
         <ImageView
@@ -22,7 +22,7 @@
             android:layout_height="match_parent"
             android:background="#ff000000"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_launcher"
+            android:src="@drawable/img1"
             grid:columnIndex="0"
             grid:columnSpec="2"
             grid:rowIndex="0"
@@ -33,7 +33,7 @@
             android:layout_height="match_parent"
             android:background="#ff000000"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_launcher"
+            android:src="@drawable/img2"
             grid:columnIndex="2"
             grid:columnSpec="1"
             grid:rowIndex="0"
@@ -44,9 +44,9 @@
             android:layout_height="match_parent"
             android:background="#ff000000"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_launcher"
+            android:src="@drawable/img3"
             grid:columnIndex="0"
-            grid:columnSpec="2"
+            grid:columnSpec="1"
             grid:rowIndex="1"
             grid:rowSpec="2" />
 
@@ -55,7 +55,18 @@
             android:layout_height="match_parent"
             android:background="#ff000000"
             android:scaleType="centerCrop"
-            android:src="@drawable/ic_launcher"
+            android:src="@drawable/img4"
+            grid:columnIndex="1"
+            grid:columnSpec="1"
+            grid:rowIndex="1"
+            grid:rowSpec="2" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ff000000"
+            android:scaleType="centerCrop"
+            android:src="@drawable/img5"
             grid:columnIndex="2"
             grid:columnSpec="1"
             grid:rowIndex="2"
