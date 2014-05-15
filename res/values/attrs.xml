@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="DolphinGridLayout">
+
+        <!-- 占据了多少行或者列 -->
+        <attr name="rowSpec" format="integer" />
+        <attr name="columnSpec" format="integer" />
+        <!-- 起始行或者列的index -->
+        <attr name="rowIndex" format="integer" />
+        <attr name="columnIndex" format="integer" />
+        <!-- 总行数与列数 -->
+        <attr name="rowCount" format="integer" />
+        <attr name="columnCount" format="integer" />
+        
+        <attr name="itemSpaceHorizontal" format="dimension" />
+        <attr name="itemSpaceVertical" format="dimension" />
+    </declare-styleable>
+
+</resources>

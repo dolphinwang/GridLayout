@@ -1,0 +1,65 @@
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:grid="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context=".MainActivity" >
+
+    <com.dolphin.gridlayout.DolphinGridLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        grid:columnCount="3"
+        grid:itemSpaceHorizontal="10dp"
+        grid:itemSpaceVertical="10dp"
+        grid:rowCount="3" >
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ff000000"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_launcher"
+            grid:columnIndex="0"
+            grid:columnSpec="2"
+            grid:rowIndex="0"
+            grid:rowSpec="1" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ff000000"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_launcher"
+            grid:columnIndex="2"
+            grid:columnSpec="1"
+            grid:rowIndex="0"
+            grid:rowSpec="2" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ff000000"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_launcher"
+            grid:columnIndex="0"
+            grid:columnSpec="2"
+            grid:rowIndex="1"
+            grid:rowSpec="2" />
+
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#ff000000"
+            android:scaleType="centerCrop"
+            android:src="@drawable/ic_launcher"
+            grid:columnIndex="2"
+            grid:columnSpec="1"
+            grid:rowIndex="2"
+            grid:rowSpec="1" />
+    </com.dolphin.gridlayout.DolphinGridLayout>
+
+</RelativeLayout>
