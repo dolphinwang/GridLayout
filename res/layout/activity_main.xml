@@ -1,5 +1,4 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:grid="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -10,6 +9,8 @@
     tools:context=".MainActivity" >
 
     <com.dolphin.gridlayout.DolphinGridLayout
+        xmlns:grid="http://schemas.android.com/apk/res-auto"
+        android:id="@+id/grid"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         grid:columnCount="3"
@@ -18,6 +19,7 @@
         grid:rowCount="3" >
 
         <ImageView
+            android:id="@+id/img1"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#ff000000"
@@ -29,6 +31,7 @@
             grid:rowSpec="1" />
 
         <ImageView
+            android:id="@+id/img2"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#ff000000"
@@ -40,6 +43,7 @@
             grid:rowSpec="2" />
 
         <ImageView
+            android:id="@+id/img3"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#ff000000"
@@ -51,6 +55,7 @@
             grid:rowSpec="2" />
 
         <ImageView
+            android:id="@+id/img4"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#ff000000"
@@ -62,6 +67,7 @@
             grid:rowSpec="2" />
 
         <ImageView
+            android:id="@+id/img5"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#ff000000"
