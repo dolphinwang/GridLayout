@@ -129,6 +129,7 @@ public class DolphinGridLayout extends ViewGroup {
 
             int childWidth = child.getMeasuredWidth();
             int childHeight = child.getMeasuredHeight();
+
             if (childWidth > widthProvide || childHeight > heightProvide) {
                 if (widthProvide - childWidth >= heightProvide - childHeight) {
                     // Width based
@@ -256,17 +257,125 @@ public class DolphinGridLayout extends ViewGroup {
             final int childHeight = child.getMeasuredHeight();
 
             // We should layout it now.
-            final int layoutTop = childRowStart == 0 ? mPadding.top
-                    : mPadding.top + childRowStart
-                            * (mItemSpaceVertical + mRowHeight);
-
-            final int layoutLeft = childColumnStart == 0 ? mPadding.left
-                    : mPadding.left + childColumnStart
-                            * (mItemSpaceHorizontal + mColumnWith);
+            int layoutTop = 0;
+            int layoutLeft = 0;
+            final int layoutGravity = lp.gravity;
+            switch (layoutGravity) {
+            case Gravity.LEFT:
+            case Gravity.START:
+            case Gravity.LEFT | Gravity.TOP:
+                layoutTop = calculateTop4Top(childRowStart);
+                layoutLeft = calculateLeft4Left(childColumnStart);
+                break;
+            case Gravity.LEFT | Gravity.BOTTOM:
+                layoutTop = calculateTop4Bottom(childRowStart + lp.rowSpec - 1,
+                        childHeight);
+                layoutLeft = calculateLeft4Left(childColumnStart);
+                break;
+            case Gravity.RIGHT:
+            case Gravity.RIGHT | Gravity.TOP:
+                layoutTop = calculateTop4Top(childRowStart);
+                layoutLeft = calculateLeft4Right(childColumnStart
+                        + lp.columnSpec - 1, childWidth);
+                break;
+            case Gravity.END:
+            case Gravity.RIGHT | Gravity.BOTTOM:
+                layoutTop = calculateTop4Bottom(childRowStart + lp.rowSpec - 1,
+                        childHeight);
+                layoutLeft = calculateLeft4Right(childColumnStart
+                        + lp.columnSpec - 1, childWidth);
+                break;
+            case Gravity.CENTER:
+                layoutTop = calculateTop4CenterVertical(childRowStart,
+                        childRowStart + lp.rowSpec - 1, childHeight);
+                layoutLeft = calculateLeft4CenterHorizontal(childColumnStart,
+                        childColumnStart + lp.columnSpec - 1, childWidth);
+                break;
+            case Gravity.CENTER_VERTICAL:
+            case Gravity.CENTER_VERTICAL | Gravity.LEFT:
+                layoutTop = calculateTop4CenterVertical(childRowStart,
+                        childRowStart + lp.rowSpec - 1, childHeight);
+                layoutLeft = calculateLeft4Left(childColumnStart);
+                break;
+            case Gravity.CENTER_VERTICAL | Gravity.RIGHT:
+                layoutTop = calculateTop4CenterVertical(childRowStart,
+                        childRowStart + lp.rowSpec - 1, childHeight);
+                layoutLeft = calculateLeft4Right(childColumnStart
+                        + lp.columnSpec - 1, childWidth);
+                break;
+            case Gravity.CENTER_HORIZONTAL:
+            case Gravity.CENTER_HORIZONTAL | Gravity.TOP:
+                layoutTop = calculateTop4Top(childRowStart);
+                layoutLeft = calculateLeft4CenterHorizontal(childColumnStart,
+                        childColumnStart + lp.columnSpec - 1, childWidth);
+                break;
+            case Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM:
+                layoutTop = calculateTop4Bottom(childRowStart + lp.rowSpec - 1,
+                        childHeight);
+                layoutLeft = calculateLeft4CenterHorizontal(childColumnStart,
+                        childColumnStart + lp.columnSpec - 1, childWidth);
+                break;
+            default:
+                layoutTop = calculateTop4Top(childRowStart);
+                layoutLeft = calculateLeft4Left(childColumnStart);
+                break;
+            }
 
             child.layout(layoutLeft, layoutTop, layoutLeft + childWidth,
                     layoutTop + childHeight);
         }
+    }
+
+    private int calculateLeft4Left(int columnStart) {
+        int left = mPadding.left + columnStart
+                * (mItemSpaceHorizontal + mColumnWith);
+
+        return left;
+    }
+
+    private int calculateTop4Top(int rowStart) {
+        int top = mPadding.top + rowStart * (mItemSpaceVertical + mRowHeight);
+
+        return top;
+    }
+
+    private int calculateTop4Bottom(int rowEnd, int childHeight) {
+        int top = mPadding.top + rowEnd * (mItemSpaceVertical + mRowHeight)
+                - childHeight;
+
+        return top;
+    }
+
+    private int calculateLeft4Right(int columnEnd, int childWidth) {
+        int left = mPadding.left + columnEnd
+                * (mItemSpaceHorizontal + mColumnCount) - childWidth;
+
+        return left;
+    }
+
+    private int calculateLeft4CenterHorizontal(int columnStart, int columnEnd,
+            int childWidth) {
+        int leftBoundary = mPadding.left + columnStart
+                * (mItemSpaceHorizontal + mColumnWith);
+        int rightBoundary = leftBoundary + (columnEnd - columnStart)
+                * mItemSpaceHorizontal + (columnEnd - columnStart + 1)
+                * mColumnWith;
+        int left = leftBoundary + (rightBoundary - leftBoundary) / 2
+                - childWidth / 2;
+
+        return left;
+    }
+
+    private int calculateTop4CenterVertical(int rowStart, int rowEnd,
+            int childHeight) {
+        int topBoundary = mPadding.top + rowStart
+                * (mItemSpaceVertical + mRowHeight);
+        int bottomBoundary = topBoundary + (rowEnd - rowStart)
+                * mItemSpaceVertical + (rowEnd - rowStart + 1) * mRowHeight;
+        int top = topBoundary + (bottomBoundary - topBoundary) / 2
+                - childHeight / 2;
+
+        return top;
     }
 
     private void checkParamsLegaled(LayoutParams lp) {
@@ -340,6 +449,7 @@ public class DolphinGridLayout extends ViewGroup {
         }
 
         mRowCount = count;
+        requestLayout();
     }
 
     public void setColumnCount(int count) {
@@ -349,6 +459,7 @@ public class DolphinGridLayout extends ViewGroup {
         }
 
         mColumnCount = count;
+        requestLayout();
     }
 
     public void setItemHorizontalSpace(int space) {
@@ -361,6 +472,7 @@ public class DolphinGridLayout extends ViewGroup {
         }
 
         mItemSpaceHorizontal = space;
+        requestLayout();
     }
 
     public void setItemVerticalSpace(int space) {
@@ -372,6 +484,7 @@ public class DolphinGridLayout extends ViewGroup {
         }
 
         mItemSpaceVertical = space;
+        requestLayout();
     }
 
     /**
@@ -382,27 +495,29 @@ public class DolphinGridLayout extends ViewGroup {
      */
     public static class LayoutParams extends ViewGroup.LayoutParams {
 
+        private static final int[] INTERNAL_ATTR = new int[] { android.R.attr.layout_gravity };
+
         /**
          * Occupy in row
          */
-        int rowSpec;
+        public int rowSpec;
 
         /**
          * Occupy in column
          */
-        int columnSpec;
+        public int columnSpec;
 
         /**
          * Index in row
          */
-        int rowIndex;
+        public int rowIndex;
 
         /**
          * Index in column
          */
-        int columnIndex;
+        public int columnIndex;
 
-        int gravity = Gravity.TOP | Gravity.LEFT;
+        public int gravity = Gravity.TOP | Gravity.LEFT;
 
         public LayoutParams(ViewGroup.LayoutParams lp) {
             super(lp);
@@ -427,6 +542,10 @@ public class DolphinGridLayout extends ViewGroup {
             columnSpec = a.getInt(R.styleable.DolphinGridLayout_columnSpec, 1);
 
             a.recycle();
+
+            TypedArray b = context.obtainStyledAttributes(attrs, INTERNAL_ATTR);
+            gravity = b.getInt(0, Gravity.TOP | Gravity.LEFT);
+            b.recycle();
 
         }
 

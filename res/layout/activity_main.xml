@@ -1,4 +1,4 @@
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -20,11 +20,12 @@
 
         <ImageView
             android:id="@+id/img1"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
             android:background="#ff000000"
             android:scaleType="centerCrop"
-            android:src="@drawable/img1"
+            android:src="@drawable/ic_launcher"
             grid:columnIndex="0"
             grid:columnSpec="2"
             grid:rowIndex="0"
@@ -79,4 +80,4 @@
             grid:rowSpec="1" />
     </com.dolphin.gridlayout.DolphinGridLayout>
 
-</RelativeLayout>
+</FrameLayout>
