@@ -1,4 +1,9 @@
+
 package com.dolphin.gridlayout;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -13,7 +18,6 @@ import android.view.ViewGroup;
  * 2014/04/14
  * 
  * @author dolphinWang
- * 
  */
 public class DolphinGridLayout extends ViewGroup {
     private static final String DEBUG_TAG = "DolphinGridLayout";
@@ -36,6 +40,9 @@ public class DolphinGridLayout extends ViewGroup {
 
     private int mColumnWith;
     private int mRowHeight;
+
+    private List<Float> mRowOccupyArray;
+    private List<Float> mColumnOccupyArray;
 
     public DolphinGridLayout(Context context) {
         this(context, null);
@@ -68,6 +75,9 @@ public class DolphinGridLayout extends ViewGroup {
     private void init() {
         mPadding = new Rect(getPaddingLeft(), getPaddingTop(),
                 getPaddingRight(), getPaddingBottom());
+
+        mColumnOccupyArray = new ArrayList<Float>();
+        mRowOccupyArray = new ArrayList<Float>();
     }
 
     @Override
@@ -117,15 +127,15 @@ public class DolphinGridLayout extends ViewGroup {
             checkParamsLegaled(lp);
 
             // Calculate whether need re-measure
-            final int heightProvide = lp.rowSpec * mRowHeight
-                    + (lp.rowSpec - 1) * mItemSpaceVertical;
-            final int widthProvide = lp.columnSpec * mColumnWith
-                    + (lp.columnSpec - 1) * mItemSpaceHorizontal;
+            final int heightProvide = (int) (lp.rowSpec * mRowHeight + (lp.rowSpec - 1)
+                    * mItemSpaceVertical);
+            final int widthProvide = (int) (lp.columnSpec * mColumnWith + (lp.columnSpec - 1)
+                    * mItemSpaceHorizontal);
 
-            int parentHeightSpec = makeMeasuerSpec(lp.height, heightProvide);
-            int parentWidthSpec = makeMeasuerSpec(lp.width, widthProvide);
+            int heightSpec = makeMeasuerSpec(lp.height, heightProvide);
+            int widthSpec = makeMeasuerSpec(lp.width, widthProvide);
 
-            measureChild(child, parentWidthSpec, parentHeightSpec);
+            child.measure(widthSpec, heightSpec);
 
             int childWidth = child.getMeasuredWidth();
             int childHeight = child.getMeasuredHeight();
@@ -160,11 +170,11 @@ public class DolphinGridLayout extends ViewGroup {
             LayoutParams lp = (LayoutParams) child.getLayoutParams();
             checkParamsLegaled(lp);
 
-            final int columnStart = lp.columnIndex;
-            final int columnEnd = columnStart + lp.columnSpec - 1;
+            final float columnStart = lp.columnIndex;
+            final float columnEnd = columnStart + lp.columnSpec - 1;
 
-            final int height = mRowHeight * lp.rowSpec + (lp.rowSpec - 1)
-                    * mItemSpaceVertical;
+            final int height = (int) (mRowHeight * lp.rowSpec + (lp.rowSpec - 1)
+                    * mItemSpaceVertical);
 
             child.measure(
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
@@ -173,14 +183,15 @@ public class DolphinGridLayout extends ViewGroup {
             int childWidth = child.getMeasuredWidth();
             int childHeight = child.getMeasuredHeight();
 
-            float ratio = (float) height / childHeight;
-            childWidth = (int) (childWidth * ratio);
+            if (lp.width == LayoutParams.MATCH_PARENT) {
+                float ratio = (float) height / childHeight;
+                childWidth = (int) (childWidth * ratio);
+            }
 
-            int tempColumnWidth = (childWidth
+            int tempColumnWidth = (int) ((childWidth
                     - (columnStart == 0 ? mPadding.left : 0)
                     - (columnEnd == mColumnCount - 1 ? mPadding.right : 0) - (lp.columnSpec - 1)
-                    * mItemSpaceHorizontal)
-                    / lp.columnSpec;
+                    * mItemSpaceHorizontal) / lp.columnSpec);
             if (mColumnWith < tempColumnWidth) {
                 mColumnWith = tempColumnWidth;
             }
@@ -194,11 +205,11 @@ public class DolphinGridLayout extends ViewGroup {
             LayoutParams lp = (LayoutParams) child.getLayoutParams();
             checkParamsLegaled(lp);
 
-            final int rowStart = lp.rowIndex;
-            final int rowEnd = rowStart + lp.rowSpec - 1;
+            final float rowStart = lp.rowIndex;
+            final float rowEnd = rowStart + lp.rowSpec - 1;
 
-            final int width = mColumnWith * lp.columnSpec + (lp.columnSpec - 1)
-                    * mItemSpaceHorizontal;
+            final int width = (int) (mColumnWith * lp.columnSpec + (lp.columnSpec - 1)
+                    * mItemSpaceHorizontal);
 
             child.measure(
                     MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
@@ -207,14 +218,15 @@ public class DolphinGridLayout extends ViewGroup {
             int childHeight = child.getMeasuredHeight();
             int childWidth = child.getMeasuredWidth();
 
-            float ratio = (float) width / childWidth;
-            childHeight = (int) (childHeight * ratio);
+            if (lp.height == LayoutParams.MATCH_PARENT) {
+                float ratio = (float) width / childWidth;
+                childHeight = (int) (childHeight * ratio);
+            }
 
-            int tempRowHeight = (childHeight
+            int tempRowHeight = (int) ((childHeight
                     - (rowStart == 0 ? mPadding.top : 0)
                     - (rowEnd == mRowCount - 1 ? mPadding.bottom : 0) - (lp.rowSpec - 1)
-                    * mItemSpaceVertical)
-                    / lp.rowSpec;
+                    * mItemSpaceVertical) / lp.rowSpec);
             if (mRowHeight < tempRowHeight) {
                 mRowHeight = tempRowHeight;
             }
@@ -250,8 +262,8 @@ public class DolphinGridLayout extends ViewGroup {
 
             final LayoutParams lp = (LayoutParams) child.getLayoutParams();
 
-            final int childRowStart = lp.rowIndex;
-            final int childColumnStart = lp.columnIndex;
+            final float childRowStart = lp.rowIndex;
+            final float childColumnStart = lp.columnIndex;
 
             final int childWidth = child.getMeasuredWidth();
             final int childHeight = child.getMeasuredHeight();
@@ -261,64 +273,64 @@ public class DolphinGridLayout extends ViewGroup {
             int layoutLeft = 0;
             final int layoutGravity = lp.gravity;
             switch (layoutGravity) {
-            case Gravity.LEFT:
-            case Gravity.START:
-            case Gravity.LEFT | Gravity.TOP:
-                layoutTop = calculateTop4Top(childRowStart);
-                layoutLeft = calculateLeft4Left(childColumnStart);
-                break;
-            case Gravity.LEFT | Gravity.BOTTOM:
-                layoutTop = calculateTop4Bottom(childRowStart + lp.rowSpec - 1,
-                        childHeight);
-                layoutLeft = calculateLeft4Left(childColumnStart);
-                break;
-            case Gravity.RIGHT:
-            case Gravity.RIGHT | Gravity.TOP:
-                layoutTop = calculateTop4Top(childRowStart);
-                layoutLeft = calculateLeft4Right(childColumnStart
-                        + lp.columnSpec - 1, childWidth);
-                break;
-            case Gravity.END:
-            case Gravity.RIGHT | Gravity.BOTTOM:
-                layoutTop = calculateTop4Bottom(childRowStart + lp.rowSpec - 1,
-                        childHeight);
-                layoutLeft = calculateLeft4Right(childColumnStart
-                        + lp.columnSpec - 1, childWidth);
-                break;
-            case Gravity.CENTER:
-                layoutTop = calculateTop4CenterVertical(childRowStart,
-                        childRowStart + lp.rowSpec - 1, childHeight);
-                layoutLeft = calculateLeft4CenterHorizontal(childColumnStart,
-                        childColumnStart + lp.columnSpec - 1, childWidth);
-                break;
-            case Gravity.CENTER_VERTICAL:
-            case Gravity.CENTER_VERTICAL | Gravity.LEFT:
-                layoutTop = calculateTop4CenterVertical(childRowStart,
-                        childRowStart + lp.rowSpec - 1, childHeight);
-                layoutLeft = calculateLeft4Left(childColumnStart);
-                break;
-            case Gravity.CENTER_VERTICAL | Gravity.RIGHT:
-                layoutTop = calculateTop4CenterVertical(childRowStart,
-                        childRowStart + lp.rowSpec - 1, childHeight);
-                layoutLeft = calculateLeft4Right(childColumnStart
-                        + lp.columnSpec - 1, childWidth);
-                break;
-            case Gravity.CENTER_HORIZONTAL:
-            case Gravity.CENTER_HORIZONTAL | Gravity.TOP:
-                layoutTop = calculateTop4Top(childRowStart);
-                layoutLeft = calculateLeft4CenterHorizontal(childColumnStart,
-                        childColumnStart + lp.columnSpec - 1, childWidth);
-                break;
-            case Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM:
-                layoutTop = calculateTop4Bottom(childRowStart + lp.rowSpec - 1,
-                        childHeight);
-                layoutLeft = calculateLeft4CenterHorizontal(childColumnStart,
-                        childColumnStart + lp.columnSpec - 1, childWidth);
-                break;
-            default:
-                layoutTop = calculateTop4Top(childRowStart);
-                layoutLeft = calculateLeft4Left(childColumnStart);
-                break;
+                case Gravity.LEFT:
+                case Gravity.START:
+                case Gravity.LEFT | Gravity.TOP:
+                    layoutTop = calculateTop4Top(childRowStart);
+                    layoutLeft = calculateLeft4Left(childColumnStart);
+                    break;
+                case Gravity.LEFT | Gravity.BOTTOM:
+                    layoutTop = calculateTop4Bottom(childRowStart + lp.rowSpec - 1,
+                            childHeight);
+                    layoutLeft = calculateLeft4Left(childColumnStart);
+                    break;
+                case Gravity.RIGHT:
+                case Gravity.RIGHT | Gravity.TOP:
+                    layoutTop = calculateTop4Top(childRowStart);
+                    layoutLeft = calculateLeft4Right(childColumnStart
+                            + lp.columnSpec - 1, childWidth);
+                    break;
+                case Gravity.END:
+                case Gravity.RIGHT | Gravity.BOTTOM:
+                    layoutTop = calculateTop4Bottom(childRowStart + lp.rowSpec - 1,
+                            childHeight);
+                    layoutLeft = calculateLeft4Right(childColumnStart
+                            + lp.columnSpec - 1, childWidth);
+                    break;
+                case Gravity.CENTER:
+                    layoutTop = calculateTop4CenterVertical(childRowStart,
+                            childRowStart + lp.rowSpec - 1, childHeight);
+                    layoutLeft = calculateLeft4CenterHorizontal(childColumnStart,
+                            childColumnStart + lp.columnSpec - 1, childWidth);
+                    break;
+                case Gravity.CENTER_VERTICAL:
+                case Gravity.CENTER_VERTICAL | Gravity.LEFT:
+                    layoutTop = calculateTop4CenterVertical(childRowStart,
+                            childRowStart + lp.rowSpec - 1, childHeight);
+                    layoutLeft = calculateLeft4Left(childColumnStart);
+                    break;
+                case Gravity.CENTER_VERTICAL | Gravity.RIGHT:
+                    layoutTop = calculateTop4CenterVertical(childRowStart,
+                            childRowStart + lp.rowSpec - 1, childHeight);
+                    layoutLeft = calculateLeft4Right(childColumnStart
+                            + lp.columnSpec - 1, childWidth);
+                    break;
+                case Gravity.CENTER_HORIZONTAL:
+                case Gravity.CENTER_HORIZONTAL | Gravity.TOP:
+                    layoutTop = calculateTop4Top(childRowStart);
+                    layoutLeft = calculateLeft4CenterHorizontal(childColumnStart,
+                            childColumnStart + lp.columnSpec - 1, childWidth);
+                    break;
+                case Gravity.CENTER_HORIZONTAL | Gravity.BOTTOM:
+                    layoutTop = calculateTop4Bottom(childRowStart + lp.rowSpec - 1,
+                            childHeight);
+                    layoutLeft = calculateLeft4CenterHorizontal(childColumnStart,
+                            childColumnStart + lp.columnSpec - 1, childWidth);
+                    break;
+                default:
+                    layoutTop = calculateTop4Top(childRowStart);
+                    layoutLeft = calculateLeft4Left(childColumnStart);
+                    break;
             }
 
             child.layout(layoutLeft, layoutTop, layoutLeft + childWidth,
@@ -326,54 +338,53 @@ public class DolphinGridLayout extends ViewGroup {
         }
     }
 
-    private int calculateLeft4Left(int columnStart) {
-        int left = mPadding.left + columnStart
-                * (mItemSpaceHorizontal + mColumnWith);
+    private int calculateLeft4Left(float columnStart) {
+        int left = (int) (mPadding.left + columnStart
+                * (mItemSpaceHorizontal + mColumnWith));
 
         return left;
     }
 
-    private int calculateTop4Top(int rowStart) {
-        int top = mPadding.top + rowStart * (mItemSpaceVertical + mRowHeight);
+    private int calculateTop4Top(float rowStart) {
+        int top = (int) (mPadding.top + rowStart
+                * (mItemSpaceVertical + mRowHeight));
 
         return top;
     }
 
-    private int calculateTop4Bottom(int rowEnd, int childHeight) {
-        int top = mPadding.top + rowEnd * (mItemSpaceVertical + mRowHeight)
-                - childHeight;
+    private int calculateTop4Bottom(float rowEnd, float childHeight) {
+        int top = (int) (mPadding.top + rowEnd
+                * (mItemSpaceVertical + mRowHeight) - childHeight);
 
         return top;
     }
 
-    private int calculateLeft4Right(int columnEnd, int childWidth) {
-        int left = mPadding.left + columnEnd
-                * (mItemSpaceHorizontal + mColumnCount) - childWidth;
+    private int calculateLeft4Right(float columnEnd, float childWidth) {
+        int left = (int) (mPadding.left + columnEnd
+                * (mItemSpaceHorizontal + mColumnCount) - childWidth);
 
         return left;
     }
 
-    private int calculateLeft4CenterHorizontal(int columnStart, int columnEnd,
-            int childWidth) {
-        int leftBoundary = mPadding.left + columnStart
+    private int calculateLeft4CenterHorizontal(float columnStart,
+            float columnEnd, int childWidth) {
+        float leftBoundary = mPadding.left + columnStart
                 * (mItemSpaceHorizontal + mColumnWith);
-        int rightBoundary = leftBoundary + (columnEnd - columnStart)
+        float rightBoundary = leftBoundary + (columnEnd - columnStart)
                 * mItemSpaceHorizontal + (columnEnd - columnStart + 1)
                 * mColumnWith;
-        int left = leftBoundary + (rightBoundary - leftBoundary) / 2
-                - childWidth / 2;
+        int left = (int) (leftBoundary + (rightBoundary - leftBoundary) / 2 - childWidth / 2);
 
         return left;
     }
 
-    private int calculateTop4CenterVertical(int rowStart, int rowEnd,
+    private int calculateTop4CenterVertical(float rowStart, float rowEnd,
             int childHeight) {
-        int topBoundary = mPadding.top + rowStart
+        float topBoundary = mPadding.top + rowStart
                 * (mItemSpaceVertical + mRowHeight);
-        int bottomBoundary = topBoundary + (rowEnd - rowStart)
+        float bottomBoundary = topBoundary + (rowEnd - rowStart)
                 * mItemSpaceVertical + (rowEnd - rowStart + 1) * mRowHeight;
-        int top = topBoundary + (bottomBoundary - topBoundary) / 2
-                - childHeight / 2;
+        int top = (int) (topBoundary + (bottomBoundary - topBoundary) / 2 - childHeight / 2);
 
         return top;
     }
@@ -382,7 +393,7 @@ public class DolphinGridLayout extends ViewGroup {
         final int rowCount = mRowCount;
         final int columnCount = mColumnCount;
 
-        final int rowEnd = lp.rowIndex + lp.rowSpec - 1;
+        final float rowEnd = lp.rowIndex + lp.rowSpec - 1;
         if (rowEnd > rowCount - 1) {
             lp.rowSpec = rowCount - lp.rowIndex;
 
@@ -401,7 +412,7 @@ public class DolphinGridLayout extends ViewGroup {
             }
         }
 
-        final int columnEnd = lp.columnIndex + lp.columnSpec - 1;
+        final float columnEnd = lp.columnIndex + lp.columnSpec - 1;
         if (columnEnd > columnCount - 1) {
             lp.columnSpec = columnCount - lp.columnIndex;
 
@@ -442,6 +453,170 @@ public class DolphinGridLayout extends ViewGroup {
         return new LayoutParams(getContext(), attrs);
     }
 
+    @Override
+    public void addView(View child, int index, ViewGroup.LayoutParams params) {
+        super.addView(child, index, params);
+
+        LayoutParams lp = (LayoutParams) params;
+
+        final float rowValue = lp.rowIndex + lp.rowSpec - 1;
+        if (!mRowOccupyArray.contains(rowValue)) {
+            mRowOccupyArray.add(rowValue);
+        }
+
+        final float columnValue = lp.columnIndex + lp.columnSpec - 1;
+        if (!mColumnOccupyArray.contains(columnValue)) {
+            mColumnOccupyArray.add(columnValue);
+        }
+
+        sortByOccupy();
+    }
+
+    @Override
+    protected boolean addViewInLayout(View child, int index,
+            ViewGroup.LayoutParams params, boolean preventRequestLayout) {
+
+        LayoutParams lp = (LayoutParams) params;
+
+        final float rowValue = lp.rowIndex + lp.rowSpec - 1;
+        if (!mRowOccupyArray.contains(rowValue)) {
+            mRowOccupyArray.add(rowValue);
+        }
+
+        final float columnValue = lp.columnIndex + lp.columnSpec - 1;
+        if (!mColumnOccupyArray.contains(columnValue)) {
+            mColumnOccupyArray.add(columnValue);
+        }
+
+        sortByOccupy();
+
+        return super
+                .addViewInLayout(child, index, params, preventRequestLayout);
+    }
+
+    @Override
+    public void removeView(View view) {
+        super.removeView(view);
+
+        LayoutParams lp = (LayoutParams) view.getLayoutParams();
+
+        final float rowValue = lp.rowIndex + lp.rowSpec - 1;
+        if (mRowOccupyArray.contains(rowValue)) {
+            mRowOccupyArray.remove(rowValue);
+        }
+
+        final float columnValue = lp.columnIndex + lp.columnSpec - 1;
+        if (mColumnOccupyArray.contains(columnValue)) {
+            mColumnOccupyArray.remove(columnValue);
+        }
+
+        sortByOccupy();
+    }
+
+    @Override
+    public void removeViewInLayout(View view) {
+        super.removeViewInLayout(view);
+
+        LayoutParams lp = (LayoutParams) view.getLayoutParams();
+
+        final float rowValue = lp.rowIndex + lp.rowSpec - 1;
+        if (mRowOccupyArray.contains(rowValue)) {
+            mRowOccupyArray.remove(rowValue);
+        }
+
+        final float columnValue = lp.columnIndex + lp.columnSpec - 1;
+        if (mColumnOccupyArray.contains(columnValue)) {
+            mColumnOccupyArray.remove(columnValue);
+        }
+
+        sortByOccupy();
+    }
+
+    @Override
+    public void removeViewsInLayout(int start, int count) {
+        for (int i = 0; i < count; i++) {
+            final View view = getChildAt(i + start);
+            LayoutParams lp = (LayoutParams) view.getLayoutParams();
+
+            final float rowValue = lp.rowIndex + lp.rowSpec - 1;
+            if (mRowOccupyArray.contains(rowValue)) {
+                mRowOccupyArray.remove(rowValue);
+            }
+
+            final float columnValue = lp.columnIndex + lp.columnSpec - 1;
+            if (mColumnOccupyArray.contains(columnValue)) {
+                mColumnOccupyArray.remove(columnValue);
+            }
+        }
+
+        sortByOccupy();
+
+        super.removeViewsInLayout(start, count);
+    }
+
+    @Override
+    public void removeViewAt(int index) {
+        final View view = getChildAt(index);
+        LayoutParams lp = (LayoutParams) view.getLayoutParams();
+
+        final float rowValue = lp.rowIndex + lp.rowSpec - 1;
+        if (mRowOccupyArray.contains(rowValue)) {
+            mRowOccupyArray.remove(rowValue);
+        }
+
+        final float columnValue = lp.columnIndex + lp.columnSpec - 1;
+        if (mColumnOccupyArray.contains(columnValue)) {
+            mColumnOccupyArray.remove(columnValue);
+        }
+
+        sortByOccupy();
+
+        super.removeViewAt(index);
+    }
+
+    @Override
+    public void removeViews(int start, int count) {
+        for (int i = 0; i < count; i++) {
+            final View view = getChildAt(i + start);
+            LayoutParams lp = (LayoutParams) view.getLayoutParams();
+
+            final float rowValue = lp.rowIndex + lp.rowSpec - 1;
+            if (mRowOccupyArray.contains(rowValue)) {
+                mRowOccupyArray.remove(rowValue);
+            }
+
+            final float columnValue = lp.columnIndex + lp.columnSpec - 1;
+            if (mColumnOccupyArray.contains(columnValue)) {
+                mColumnOccupyArray.remove(columnValue);
+            }
+        }
+
+        sortByOccupy();
+
+        super.removeViews(start, count);
+    }
+
+    @Override
+    public void removeAllViews() {
+        mRowOccupyArray.clear();
+        mColumnOccupyArray.clear();
+
+        super.removeAllViews();
+    }
+
+    @Override
+    public void removeAllViewsInLayout() {
+        mRowOccupyArray.clear();
+        mColumnOccupyArray.clear();
+
+        super.removeAllViewsInLayout();
+    }
+
+    private void sortByOccupy() {
+        Collections.sort(mRowOccupyArray);
+        Collections.sort(mColumnOccupyArray);
+    }
+
     public void setRowCount(int count) {
         if (count <= 0) {
             throw new IllegalArgumentException(
@@ -449,6 +624,7 @@ public class DolphinGridLayout extends ViewGroup {
         }
 
         mRowCount = count;
+
         requestLayout();
     }
 
@@ -459,6 +635,7 @@ public class DolphinGridLayout extends ViewGroup {
         }
 
         mColumnCount = count;
+
         requestLayout();
     }
 
@@ -491,31 +668,32 @@ public class DolphinGridLayout extends ViewGroup {
      * LayoutParams for this grid layout
      * 
      * @author dolphinWang
-     * 
      */
     public static class LayoutParams extends ViewGroup.LayoutParams {
 
-        private static final int[] INTERNAL_ATTR = new int[] { android.R.attr.layout_gravity };
+        private static final int[] INTERNAL_ATTR = new int[] {
+                android.R.attr.layout_gravity
+        };
 
         /**
          * Occupy in row
          */
-        public int rowSpec;
+        public float rowSpec;
 
         /**
          * Occupy in column
          */
-        public int columnSpec;
+        public float columnSpec;
 
         /**
          * Index in row
          */
-        public int rowIndex;
+        public float rowIndex;
 
         /**
          * Index in column
          */
-        public int columnIndex;
+        public float columnIndex;
 
         public int gravity = Gravity.TOP | Gravity.LEFT;
 
@@ -535,23 +713,23 @@ public class DolphinGridLayout extends ViewGroup {
             TypedArray a = context.obtainStyledAttributes(attrs,
                     R.styleable.DolphinGridLayout);
 
-            rowIndex = a.getInt(R.styleable.DolphinGridLayout_rowIndex, 0);
-            rowSpec = a.getInt(R.styleable.DolphinGridLayout_rowSpec, 1);
-            columnIndex = a
-                    .getInt(R.styleable.DolphinGridLayout_columnIndex, 0);
-            columnSpec = a.getInt(R.styleable.DolphinGridLayout_columnSpec, 1);
+            rowIndex = a.getFloat(R.styleable.DolphinGridLayout_rowIndex, 0);
+            rowSpec = a.getFloat(R.styleable.DolphinGridLayout_rowSpec, 1);
+            columnIndex = a.getFloat(R.styleable.DolphinGridLayout_columnIndex,
+                    0);
+            columnSpec = a
+                    .getFloat(R.styleable.DolphinGridLayout_columnSpec, 1);
 
             a.recycle();
 
             TypedArray b = context.obtainStyledAttributes(attrs, INTERNAL_ATTR);
             gravity = b.getInt(0, Gravity.TOP | Gravity.LEFT);
             b.recycle();
-
         }
 
         private void defaultParams() {
-            rowSpec = 1;
-            columnSpec = 1;
+            rowSpec = 1.0f;
+            columnSpec = 1.0f;
             rowIndex = 0;
             columnIndex = 0;
         }
