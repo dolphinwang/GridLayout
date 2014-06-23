@@ -1,10 +1,6 @@
 
 package com.dolphin.gridlayout;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Rect;
@@ -41,9 +37,6 @@ public class DolphinGridLayout extends ViewGroup {
     private int mColumnWith;
     private int mRowHeight;
 
-    private List<Float> mRowOccupyArray;
-    private List<Float> mColumnOccupyArray;
-
     public DolphinGridLayout(Context context) {
         this(context, null);
     }
@@ -59,7 +52,8 @@ public class DolphinGridLayout extends ViewGroup {
             mRowCount = a.getInt(R.styleable.DolphinGridLayout_rowCount,
                     DEFAULT_ROW_AND_COLUMN_COUNT);
 
-            mColumnCount = a.getInt(R.styleable.DolphinGridLayout_columnCount,
+            mColumnCount = a.getInt(
+                    R.styleable.DolphinGridLayout_columnCount,
                     DEFAULT_ROW_AND_COLUMN_COUNT);
 
             mItemSpaceHorizontal = (int) a.getDimension(
@@ -75,9 +69,6 @@ public class DolphinGridLayout extends ViewGroup {
     private void init() {
         mPadding = new Rect(getPaddingLeft(), getPaddingTop(),
                 getPaddingRight(), getPaddingBottom());
-
-        mColumnOccupyArray = new ArrayList<Float>();
-        mRowOccupyArray = new ArrayList<Float>();
     }
 
     @Override
@@ -170,18 +161,20 @@ public class DolphinGridLayout extends ViewGroup {
             LayoutParams lp = (LayoutParams) child.getLayoutParams();
             checkParamsLegaled(lp);
 
-            final float columnStart = lp.columnIndex;
-            final float columnEnd = columnStart + lp.columnSpec - 1;
-
             final int height = (int) (mRowHeight * lp.rowSpec + (lp.rowSpec - 1)
                     * mItemSpaceVertical);
 
-            child.measure(
-                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
-                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+            int childWidth = lp.width;
+            int childHeight = lp.height;
+            if (childWidth < 0) {
+                child.measure(
+                        MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+                        MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
 
-            int childWidth = child.getMeasuredWidth();
-            int childHeight = child.getMeasuredHeight();
+                childWidth = child.getMeasuredWidth();
+                childHeight = child.getMeasuredHeight();
+
+            }
 
             if (lp.width == LayoutParams.MATCH_PARENT) {
                 float ratio = (float) height / childHeight;
@@ -189,8 +182,7 @@ public class DolphinGridLayout extends ViewGroup {
             }
 
             int tempColumnWidth = (int) ((childWidth
-                    - (columnStart == 0 ? mPadding.left : 0)
-                    - (columnEnd == mColumnCount - 1 ? mPadding.right : 0) - (lp.columnSpec - 1)
+                    - (lp.columnSpec - 1)
                     * mItemSpaceHorizontal) / lp.columnSpec);
             if (mColumnWith < tempColumnWidth) {
                 mColumnWith = tempColumnWidth;
@@ -205,18 +197,20 @@ public class DolphinGridLayout extends ViewGroup {
             LayoutParams lp = (LayoutParams) child.getLayoutParams();
             checkParamsLegaled(lp);
 
-            final float rowStart = lp.rowIndex;
-            final float rowEnd = rowStart + lp.rowSpec - 1;
-
             final int width = (int) (mColumnWith * lp.columnSpec + (lp.columnSpec - 1)
                     * mItemSpaceHorizontal);
 
-            child.measure(
-                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
-                    MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+            int childWidth = lp.width;
+            int childHeight = lp.height;
 
-            int childHeight = child.getMeasuredHeight();
-            int childWidth = child.getMeasuredWidth();
+            if (childHeight < 0) {
+                child.measure(
+                        MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+                        MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
+
+                childHeight = child.getMeasuredHeight();
+                childWidth = child.getMeasuredWidth();
+            }
 
             if (lp.height == LayoutParams.MATCH_PARENT) {
                 float ratio = (float) width / childWidth;
@@ -224,8 +218,7 @@ public class DolphinGridLayout extends ViewGroup {
             }
 
             int tempRowHeight = (int) ((childHeight
-                    - (rowStart == 0 ? mPadding.top : 0)
-                    - (rowEnd == mRowCount - 1 ? mPadding.bottom : 0) - (lp.rowSpec - 1)
+                    - (lp.rowSpec - 1)
                     * mItemSpaceVertical) / lp.rowSpec);
             if (mRowHeight < tempRowHeight) {
                 mRowHeight = tempRowHeight;
@@ -451,170 +444,6 @@ public class DolphinGridLayout extends ViewGroup {
     @Override
     public ViewGroup.LayoutParams generateLayoutParams(AttributeSet attrs) {
         return new LayoutParams(getContext(), attrs);
-    }
-
-    @Override
-    public void addView(View child, int index, ViewGroup.LayoutParams params) {
-        super.addView(child, index, params);
-
-        LayoutParams lp = (LayoutParams) params;
-
-        final float rowValue = lp.rowIndex + lp.rowSpec - 1;
-        if (!mRowOccupyArray.contains(rowValue)) {
-            mRowOccupyArray.add(rowValue);
-        }
-
-        final float columnValue = lp.columnIndex + lp.columnSpec - 1;
-        if (!mColumnOccupyArray.contains(columnValue)) {
-            mColumnOccupyArray.add(columnValue);
-        }
-
-        sortByOccupy();
-    }
-
-    @Override
-    protected boolean addViewInLayout(View child, int index,
-            ViewGroup.LayoutParams params, boolean preventRequestLayout) {
-
-        LayoutParams lp = (LayoutParams) params;
-
-        final float rowValue = lp.rowIndex + lp.rowSpec - 1;
-        if (!mRowOccupyArray.contains(rowValue)) {
-            mRowOccupyArray.add(rowValue);
-        }
-
-        final float columnValue = lp.columnIndex + lp.columnSpec - 1;
-        if (!mColumnOccupyArray.contains(columnValue)) {
-            mColumnOccupyArray.add(columnValue);
-        }
-
-        sortByOccupy();
-
-        return super
-                .addViewInLayout(child, index, params, preventRequestLayout);
-    }
-
-    @Override
-    public void removeView(View view) {
-        super.removeView(view);
-
-        LayoutParams lp = (LayoutParams) view.getLayoutParams();
-
-        final float rowValue = lp.rowIndex + lp.rowSpec - 1;
-        if (mRowOccupyArray.contains(rowValue)) {
-            mRowOccupyArray.remove(rowValue);
-        }
-
-        final float columnValue = lp.columnIndex + lp.columnSpec - 1;
-        if (mColumnOccupyArray.contains(columnValue)) {
-            mColumnOccupyArray.remove(columnValue);
-        }
-
-        sortByOccupy();
-    }
-
-    @Override
-    public void removeViewInLayout(View view) {
-        super.removeViewInLayout(view);
-
-        LayoutParams lp = (LayoutParams) view.getLayoutParams();
-
-        final float rowValue = lp.rowIndex + lp.rowSpec - 1;
-        if (mRowOccupyArray.contains(rowValue)) {
-            mRowOccupyArray.remove(rowValue);
-        }
-
-        final float columnValue = lp.columnIndex + lp.columnSpec - 1;
-        if (mColumnOccupyArray.contains(columnValue)) {
-            mColumnOccupyArray.remove(columnValue);
-        }
-
-        sortByOccupy();
-    }
-
-    @Override
-    public void removeViewsInLayout(int start, int count) {
-        for (int i = 0; i < count; i++) {
-            final View view = getChildAt(i + start);
-            LayoutParams lp = (LayoutParams) view.getLayoutParams();
-
-            final float rowValue = lp.rowIndex + lp.rowSpec - 1;
-            if (mRowOccupyArray.contains(rowValue)) {
-                mRowOccupyArray.remove(rowValue);
-            }
-
-            final float columnValue = lp.columnIndex + lp.columnSpec - 1;
-            if (mColumnOccupyArray.contains(columnValue)) {
-                mColumnOccupyArray.remove(columnValue);
-            }
-        }
-
-        sortByOccupy();
-
-        super.removeViewsInLayout(start, count);
-    }
-
-    @Override
-    public void removeViewAt(int index) {
-        final View view = getChildAt(index);
-        LayoutParams lp = (LayoutParams) view.getLayoutParams();
-
-        final float rowValue = lp.rowIndex + lp.rowSpec - 1;
-        if (mRowOccupyArray.contains(rowValue)) {
-            mRowOccupyArray.remove(rowValue);
-        }
-
-        final float columnValue = lp.columnIndex + lp.columnSpec - 1;
-        if (mColumnOccupyArray.contains(columnValue)) {
-            mColumnOccupyArray.remove(columnValue);
-        }
-
-        sortByOccupy();
-
-        super.removeViewAt(index);
-    }
-
-    @Override
-    public void removeViews(int start, int count) {
-        for (int i = 0; i < count; i++) {
-            final View view = getChildAt(i + start);
-            LayoutParams lp = (LayoutParams) view.getLayoutParams();
-
-            final float rowValue = lp.rowIndex + lp.rowSpec - 1;
-            if (mRowOccupyArray.contains(rowValue)) {
-                mRowOccupyArray.remove(rowValue);
-            }
-
-            final float columnValue = lp.columnIndex + lp.columnSpec - 1;
-            if (mColumnOccupyArray.contains(columnValue)) {
-                mColumnOccupyArray.remove(columnValue);
-            }
-        }
-
-        sortByOccupy();
-
-        super.removeViews(start, count);
-    }
-
-    @Override
-    public void removeAllViews() {
-        mRowOccupyArray.clear();
-        mColumnOccupyArray.clear();
-
-        super.removeAllViews();
-    }
-
-    @Override
-    public void removeAllViewsInLayout() {
-        mRowOccupyArray.clear();
-        mColumnOccupyArray.clear();
-
-        super.removeAllViewsInLayout();
-    }
-
-    private void sortByOccupy() {
-        Collections.sort(mRowOccupyArray);
-        Collections.sort(mColumnOccupyArray);
     }
 
     public void setRowCount(int count) {
