@@ -164,22 +164,17 @@ public class DolphinGridLayout extends ViewGroup {
             final int height = (int) (mRowHeight * lp.rowSpec + (lp.rowSpec - 1)
                     * mItemSpaceVertical);
 
-            int childWidth = lp.width;
-            int childHeight = lp.height;
-            if (childWidth < 0) {
+            if (lp.width < 0) {
                 child.measure(
                         MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
-                        MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-
-                childWidth = child.getMeasuredWidth();
-                childHeight = child.getMeasuredHeight();
-
+                        makeMeasuerSpec(lp.height, height));
+            } else {
+                child.measure(
+                        MeasureSpec.makeMeasureSpec(lp.width, MeasureSpec.EXACTLY),
+                        makeMeasuerSpec(lp.height, height));
             }
 
-            if (lp.width == LayoutParams.MATCH_PARENT) {
-                float ratio = (float) height / childHeight;
-                childWidth = (int) (childWidth * ratio);
-            }
+            int childWidth = child.getMeasuredWidth();
 
             int tempColumnWidth = (int) ((childWidth
                     - (lp.columnSpec - 1)
@@ -200,22 +195,18 @@ public class DolphinGridLayout extends ViewGroup {
             final int width = (int) (mColumnWith * lp.columnSpec + (lp.columnSpec - 1)
                     * mItemSpaceHorizontal);
 
-            int childWidth = lp.width;
-            int childHeight = lp.height;
-
-            if (childHeight < 0) {
+            if (lp.height < 0) {
                 child.measure(
-                        MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED),
+                        makeMeasuerSpec(lp.width, width),
                         MeasureSpec.makeMeasureSpec(0, MeasureSpec.UNSPECIFIED));
-
-                childHeight = child.getMeasuredHeight();
-                childWidth = child.getMeasuredWidth();
+            } else {
+                child.measure(
+                        makeMeasuerSpec(lp.width, width),
+                        MeasureSpec.makeMeasureSpec(lp.height, MeasureSpec.EXACTLY));
             }
 
-            if (lp.height == LayoutParams.MATCH_PARENT) {
-                float ratio = (float) width / childWidth;
-                childHeight = (int) (childHeight * ratio);
-            }
+            int childHeight = child.getMeasuredHeight();
+
 
             int tempRowHeight = (int) ((childHeight
                     - (lp.rowSpec - 1)
